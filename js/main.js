@@ -104,61 +104,64 @@ const addPoint = () => {
 };
 
 // Bar chart
-const drawBarchart = async () => {
-  const data = await d3.csv("../data/bar-data.csv");
+const drawBarchart = () => {
+  d3.csv("../data/bar-data.csv").then((data) => {
+    const X_SCALE = d3
+      .scaleBand()
+      .domain(data.map((row) => row.category))
+      .range([0, VIS_WIDTH])
+      .padding(0.5);
 
-  const X_SCALE = d3
-    .scaleBand()
-    .domain(data.map((row) => row.category))
-    .range([0, VIS_WIDTH])
-    .padding(0.5);
+    const MAX_Y = d3.max(data, (d) => parseInt(d.amount));
+    const Y_SCALE = d3.scaleLinear().domain([0, MAX_Y]).range([VIS_HEIGHT, 0]);
 
-  const MAX_Y = d3.max(data, (d) => parseInt(d.amount));
-  const Y_SCALE = d3.scaleLinear().domain([0, MAX_Y]).range([VIS_HEIGHT, 0]);
+    const TOOLTIP = d3
+      .select("#barchart")
+      .append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
 
-  const TOOLTIP = d3
-    .select("#barchart")
-    .append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
+    FRAME2.selectAll("rect")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", (d) => X_SCALE(d.category) + MARGINS.left)
+      .attr("y", (d) => Y_SCALE(d.amount) + MARGINS.top)
+      .attr("width", X_SCALE.bandwidth())
+      .attr("height", (d) => VIS_HEIGHT - Y_SCALE(d.amount))
+      .attr("fill", RECT_COLOR)
+      .on("mouseover", (e) => {
+        TOOLTIP.style("opacity", 1);
+        const rect = e.target;
+        rect.setAttribute("fill", "red");
+      })
+      .on("mouseleave", (e) => {
+        TOOLTIP.style("opacity", 0);
+        const rect = e.target;
+        rect.setAttribute("fill", RECT_COLOR);
+      })
+      .on("mousemove", (e, d) => {
+        // position the tooltip and fill in information
+        TOOLTIP.html("Category: " + d.category + "<br>Value: " + d.amount)
+          .style("left", e.pageX + 10 + "px") //add offset
+          // from mouse
+          .style("top", e.pageY - 50 + "px");
+      });
 
-  FRAME2.selectAll("rect")
-    .data(data)
-    .enter()
-    .append("rect")
-    .attr("class", "bar")
-    .attr("x", (d) => X_SCALE(d.category) + MARGINS.left)
-    .attr("y", (d) => Y_SCALE(d.amount) + MARGINS.top)
-    .attr("width", X_SCALE.bandwidth())
-    .attr("height", (d) => VIS_HEIGHT - Y_SCALE(d.amount))
-    .attr("fill", RECT_COLOR)
-    .on("mouseover", (e) => {
-      TOOLTIP.style("opacity", 1);
-      const rect = e.target;
-      rect.setAttribute("fill", "red");
-    })
-    .on("mouseleave", (e) => {
-      TOOLTIP.style("opacity", 0);
-      const rect = e.target;
-      rect.setAttribute("fill", RECT_COLOR);
-    })
-    .on("mousemove", (e, d) => {
-      // position the tooltip and fill in information
-      TOOLTIP.html("Category: " + d.category + "<br>Value: " + d.amount)
-        .style("left", e.pageX + 10 + "px") //add offset
-        // from mouse
-        .style("top", e.pageY - 50 + "px");
-    });
+    FRAME2.append("g")
+      .attr(
+        "transform",
+        `translate(${MARGINS.left},${VIS_HEIGHT + MARGINS.top})`
+      )
+      .call(d3.axisBottom(X_SCALE).ticks(10))
+      .attr("font-size", "20px");
 
-  FRAME2.append("g")
-    .attr("transform", `translate(${MARGINS.left},${VIS_HEIGHT + MARGINS.top})`)
-    .call(d3.axisBottom(X_SCALE).ticks(10))
-    .attr("font-size", "20px");
-
-  FRAME2.append("g")
-    .attr("transform", `translate(${MARGINS.left},${MARGINS.top})`)
-    .call(d3.axisLeft(Y_SCALE).ticks(10))
-    .attr("font-size", "20px");
+    FRAME2.append("g")
+      .attr("transform", `translate(${MARGINS.left},${MARGINS.top})`)
+      .call(d3.axisLeft(Y_SCALE).ticks(10))
+      .attr("font-size", "20px");
+  });
 };
 
 drawScatterplot();
