@@ -25,7 +25,7 @@ const FRAME2 = d3
 const USER_ADDED_POINTS = [];
 
 const drawScatterplot = () => {
-  d3.csv("../data/scatter-data.csv").then((data) => {
+  d3.csv("./data/scatter-data.csv").then((data) => {
     const MAX_X = d3.max(data, (d) => parseInt(d.x));
     const X_SCALE = d3
       .scaleLinear()
@@ -105,7 +105,7 @@ const addPoint = () => {
 
 // Bar chart
 const drawBarchart = () => {
-  d3.csv("../data/bar-data.csv").then((data) => {
+  d3.csv("./data/bar-data.csv").then((data) => {
     const X_SCALE = d3
       .scaleBand()
       .domain(data.map((row) => row.category))
